@@ -331,8 +331,8 @@
 
                     const resultData = await response.json();
 
-                    if (response.ok) {
-                        // Save result in browser storage and navigate to output screen
+                    if (response.ok && !resultData.error) {
+                        // Save result in browser storage under 'scanResult' and navigate to output screen
                         localStorage.setItem('scanResult', JSON.stringify(resultData));
                         window.location.href = 'output.html';
                     } else {
