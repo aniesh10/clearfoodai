@@ -285,5 +285,64 @@
             headerElement.classList.toggle('expanded');
         }
     </script>
+    <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // 1. Pull the saved AI output from localStorage
+    const rawData = localStorage.getItem('foodAnalysis');
+
+    if (!rawData) {
+      console.warn('No analysis data found in localStorage.');
+      return;
+    }
+
+    const data = JSON.parse(rawData);
+
+    // 2. Populate Health Score, Label, and Summary
+    const scoreEl = document.getElementById('health-score');
+    const labelEl = document.getElementById('score-label');
+    const summaryEl = document.getElementById('score-summary');
+
+    if (scoreEl && data.health_score !== undefined) {
+      scoreEl.textContent = data.health_score;
+    }
+    if (labelEl && data.score_label) {
+      labelEl.textContent = data.score_label;
+    }
+    if (summaryEl && data.score_summary) {
+      summaryEl.textContent = data.score_summary;
+    }
+
+    // 3. Helper function to safely populate list sections
+    function renderList(elementId, items) {
+      const container = document.getElementById(elementId);
+      if (!container) return;
+
+      container.innerHTML = ''; // Clear default/placeholder items
+
+      if (!items || items.length === 0) {
+        container.innerHTML = '<li>None detected</li>';
+        return;
+      }
+
+      items.forEach(item => {
+        const li = document.createElement('li');
+        // Check if item is an object ({ name, reason }) or a plain string
+        if (typeof item === 'object' && item !== null) {
+          li.innerHTML = `<strong>${item.name || 'Unknown'}</strong>: ${item.reason || ''}`;
+        } else {
+          li.textContent = item;
+        }
+        container.appendChild(li);
+      });
+    }
+
+    // 4. Populate ingredient lists (matching your output.html element IDs)
+    renderList('severe-allergens-list', data.severe_allergens);
+    renderList('high-risk-list', data.high_risk);
+    renderList('moderate-risk-list', data.moderate_risk);
+    renderList('safe-foods-list', data.safe_whole_foods);
+    renderList('unverified-list', data.unverified);
+  });
+</script>
 </body>
 </html>
