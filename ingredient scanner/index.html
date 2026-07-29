@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClearFood AI - Food Ingredient Scanner</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&family=Syne:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --foreground: #f8fafc;
+            --sky-blue: #72c6f7;
+            --sky-blue-dim: rgba(114, 198, 247, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 400;
+        }
+
+        h1, h2, h3, h4, h5, h6, .heading-font {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+        }
+
+        body {
+            /* Full-screen responsive background */
+            background-image: url('assets/bg.webp');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: var(--foreground);
+            overflow-x: hidden;
+        }
+
+        /* MASTER CONTAINER CARD (Main Frosted Glass Wrapper) */
+        .master-glass-card {
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        /* INNER CARDS (Dark Tint Frosted Glass) */
+        .inner-dark-glass {
+            background: rgba(10, 15, 26, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
+        }
+
+        /* Pill Tags */
+        .pill-tag {
+            padding: 0.6rem 1.25rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #cbd5e1;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .pill-tag:hover {
+            background: var(--sky-blue-dim);
+            color: #ffffff;
+            border-color: var(--sky-blue);
+        }
+
+        .pill-tag.active {
+            background: var(--foreground);
+            border-color: var(--foreground);
+            color: #000000;
+            font-weight: 700;
+            box-shadow: 0 4px 14px rgba(114, 198, 247, 0.3);
+        }
+
+        /* Action Buttons */
+        .btn-primary {
+            background-color: var(--sky-blue);
+            color: #000000;
+            font-weight: 700;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--sky-blue);
+            color: var(--sky-blue);
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--sky-blue-dim);
+            transform: translateY(-1px);
+        }
+
+        /* Custom AI Scanning Loader */
+        .loader-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .loader {
+            max-width: fit-content;
+            color: #ffffff;
+            font-size: 2.25rem;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            position: relative;
+            letter-spacing: 1px;
+        }
+
+        .loader span {
+            display: inline-block;
+            animation: cut 2s infinite;
+            transition: 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .loader::after {
+            position: absolute;
+            content: "";
+            width: 100%;
+            height: 6px;
+            border-radius: 4px;
+            background-color: rgba(114, 198, 247, 0.6);
+            top: 0px;
+            filter: blur(8px);
+            animation: scan 2s infinite;
+            left: 0;
+            z-index: 0;
+            transition: 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .loader::before {
+            position: absolute;
+            content: "";
+            width: 100%;
+            height: 4px;
+            border-radius: 4px;
+            background-color: #72c6f7;
+            top: 0px;
+            animation: scan 2s infinite;
+            left: 0;
+            z-index: 1;
+            filter: opacity(0.9);
+            transition: 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes scan {
+            0% { top: 0px; }
+            25% { top: 45px; }
+            50% { top: 0px; }
+            75% { top: 45px; }
+            100% { top: 0px; }
+        }
+
+        @keyframes cut {
+            0% { clip-path: inset(0 0 0 0); }
+            25% { clip-path: inset(100% 0 0 0); }
+            50% { clip-path: inset(0 0 100% 0); }
+            75% { clip-path: inset(0 0 0 0); }
+        }
+
+        /* Scrollbar styling */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 sm:p-6">
+
+    <main class="master-glass-card w-full max-w-md mx-auto rounded-3xl p-6 sm:p-8 flex flex-col gap-6 my-6">
+
+        <header class="text-center flex flex-col items-center gap-1">
+            <span class="text-xs uppercase tracking-normal font-bold text-[#72c6f7] bg-[#72c6f7]/10 px-3 py-1 rounded-full border border-[#72c6f7]/20 mb-1">
+                AI Ingredient Scanner
+            </span>
+            <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-white drop-shadow-md">
+                ClearFood AI
+            </h1>
+            <p class="text-slate-300 text-sm font-normal mt-0">
+                Decode what you eat in seconds
+            </p>
+        </header>
+
+        <section class="flex flex-col gap-1.5">
+            <div class="flex justify-between items-center px-1">
+                <span class="text-xs font-bold text-[var(--foreground)] uppercase tracking-wider">Your Preferences</span>
+                <span class="text-xs text-slate-400 font-semibold">Scroll &amp; Select</span>
+            </div>
+            
+            <div class="flex gap-2 overflow-x-auto hide-scrollbar py-1">
+                <button class="pill-tag active" data-pref="gluten-free" onclick="togglePref(this)">
+                    <span>🌾</span> Gluten-Free
+                </button>
+                <button class="pill-tag" data-pref="vegetarian" onclick="togglePref(this)">
+                    <span>🥗</span> Vegetarian
+                </button>
+                <button class="pill-tag" data-pref="vegan" onclick="togglePref(this)">
+                    <span>🌱</span> Vegan
+                </button>
+                <button class="pill-tag" data-pref="peanut-allergy" onclick="togglePref(this)">
+                    <span>🥜</span> Peanut Allergy
+                </button>
+                <button class="pill-tag" data-pref="lactose-free" onclick="togglePref(this)">
+                    <span>🥛</span> Lactose-Free
+                </button>
+                <button class="pill-tag" data-pref="soy-free" onclick="togglePref(this)">
+                    <span>🫘</span> Soy-Free
+                </button>
+            </div>
+        </section>
+
+        <section id="scannerBox" class="inner-dark-glass rounded-3xl p-8 flex flex-col items-center text-center">
+            
+            <div class="w-20 h-20 rounded-2xl bg-[#72c6f7]/10 border border-[#72c6f7]/30 p-[2px] mb-6 flex items-center justify-center">
+                <span class="text-3xl">📸</span>
+            </div>
+
+            <h2 class="text-xl font-bold text-white mb-2">
+                Scan Food Label
+            </h2>
+            <p class="text-xs text-slate-300 leading-relaxed max-w-xs mb-8 font-normal">
+                Snap or upload a photo of any ingredient label to instantly detect harmful additives and allergens.
+            </p>
+
+            <label class="w-full cursor-pointer">
+                <input type="file" id="imageInput" accept="image/*" capture="environment" class="hidden" onchange="handleFileSelect(event)">
+                <div class="btn-primary w-full py-3.5 px-6 rounded-2xl text-sm flex items-center justify-center gap-2 mb-3">
+                    Take Photo
+                </div>
+            </label>
+
+            <label class="w-full cursor-pointer">
+                <input type="file" id="uploadInput" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+                <div class="btn-secondary w-full py-3.5 px-6 rounded-2xl text-sm flex items-center justify-center gap-2">
+                    Upload from Gallery
+                </div>
+            </label>
+
+        </section>
+
+        <section id="loaderState" class="inner-dark-glass rounded-3xl p-8 hidden flex-col items-center text-center py-12">
+            <div class="loader-container">
+                <div class="loader">
+                    <span>Processing...</span>
+                </div>
+                <p class="text-xs text-slate-300 font-medium mt-3">
+                    Decoding ingredients &amp; checking allergens
+                </p>
+            </div>
+        </section>
+
+        <footer class="inner-dark-glass rounded-2xl p-4 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-[#72c6f7]/10 border border-[#72c6f7]/30 flex items-center justify-center text-lg flex-shrink-0">
+                💡
+            </div>
+            <p class="text-xs text-slate-300 leading-snug font-normal">
+                <strong class="text-white font-semibold">Pro Tip:</strong> Ensure the label is flat, well-lit, and legible for 100% scanning accuracy.
+            </p>
+        </footer>
+
+    </main>
+
+    <script>
+        function togglePref(button) {
+            button.classList.toggle('active');
+        }
+
+        async function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // 1. Hide the scanner input card and reveal the processing loader
+            const scannerBox = document.getElementById('scannerBox');
+            const loaderState = document.getElementById('loaderState');
+            
+            if (scannerBox) scannerBox.classList.add('hidden');
+            if (loaderState) {
+                loaderState.classList.remove('hidden');
+                loaderState.classList.add('flex');
+            }
+
+            // Collect active preference tags
+            const activePrefs = Array.from(document.querySelectorAll('.pill-tag.active'))
+                .map(btn => btn.dataset.pref);
+
+            // Convert selected image to Base64
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async function () {
+                const base64Image = reader.result;
+
+                // Save preview locally for output page
+                localStorage.setItem('scannedImage', base64Image);
+
+                try {
+                    const response = await fetch('/.netlify/functions/analyze', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            image: base64Image,
+                            preferences: activePrefs
+                        })
+                    });
+
+                    const resultData = await response.json();
+
+                    if (response.ok) {
+                        // Save result in browser storage and navigate to output screen
+                        localStorage.setItem('scanResult', JSON.stringify(resultData));
+                        window.location.href = 'output.html';
+                    } else {
+                        alert('Scan failed: ' + (resultData.error || 'Unknown error'));
+                        location.reload(); // Reset screen on failure
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Network error while connecting to serverless function.');
+                    location.reload(); // Reset screen on error
+                }
+            };
+        }
+    </script>
+</body>
+</html>
