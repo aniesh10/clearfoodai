@@ -10,31 +10,31 @@ exports.handler = async (event) => {
     if (!GROQ_API_KEY) {
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: 'Missing Groq API Key in environment variables' })
+        body: JSON.stringify({ error: 'Missing GROQ_API_KEY environment variable in Netlify' })
       };
     }
 
     const systemPrompt = `
-      You are a food safety assistant. Analyze this ingredient label.
-      User Preferences/Allergies: ${preferences.length > 0 ? preferences.join(', ') : 'None'}.
+      You are an expert food safety & OCR assistant. Analyze the ingredient label image.
+      User Active Preferences/Allergies: ${preferences && preferences.length ? preferences.join(', ') : 'None'}.
 
-      Categorize ingredients strictly into:
-      - severe_allergens: Matches preferences or FDA top allergens.
-      - high_risk: Harmful additives (Nitrites, Hydrogenated oils, Red 40).
-      - moderate_risk: Preservatives/sweeteners (Sucralose, BHT).
-      - safe_whole_foods: Natural ingredients, spices, vitamins.
-      - unverified: Unclear or unclassified ingredients.
+      Categorize extracted ingredients strictly into these 5 groups:
+      1. severe_allergens: Matches user preferences/allergies or top FDA allergens.
+      2. high_risk: Harmful additives (e.g., Nitrites, Hydrogenated oils, Red 40).
+      3. moderate_risk: Controversial preservatives/sweeteners (e.g., Sucralose, BHT).
+      4. safe_whole_foods: Natural ingredients, spices, vitamins, whole foods.
+      5. unverified: Ingredients that cannot be clearly classified or read.
 
-      Return ONLY a JSON object matching this structure:
+      Return ONLY a valid JSON object matching this exact structure with no markdown formatting or extra text:
       {
         "health_score": 6.5,
         "score_label": "Moderate Health Risk",
-        "score_summary": "Summary here",
-        "raw_ocr": "Raw text extracted",
-        "severe_allergens": [{"name": "Item", "reason": "Reason"}],
-        "high_risk": [{"name": "Item", "reason": "Reason"}],
-        "moderate_risk": [{"name": "Item", "reason": "Reason"}],
-        "safe_whole_foods": ["Item 1"],
+        "score_summary": "Short 1-sentence summary explanation",
+        "raw_ocr": "Exact raw text read from label",
+        "severe_allergens": [{"name": "Item Name", "reason": "Reason/Flag"}],
+        "high_risk": [{"name": "Item Name", "reason": "Reason/Flag"}],
+        "moderate_risk": [{"name": "Item Name", "reason": "Reason/Flag"}],
+        "safe_whole_foods": ["Item 1", "Item 2"],
         "unverified": ["Item 1"]
       }
     `;
@@ -63,11 +63,12 @@ exports.handler = async (event) => {
 
     const data = await response.json();
 
-    if (!response.ok) {
-      console.error('Groq API Error:', data);
+    // Safety check: Log and catch Groq errors cleanly
+    if (!response.ok || data.error || !data.choices) {
+      console.error('Groq API Error Response:', JSON.stringify(data));
       return {
-        statusCode: response.status,
-        body: JSON.stringify({ error: data.error?.message || 'Groq API request failed' })
+        statusCode: response.status || 500,
+        body: JSON.stringify({ error: data.error?.message || 'API request to AI model failed' })
       };
     }
 
@@ -80,7 +81,7 @@ exports.handler = async (event) => {
     };
 
   } catch (error) {
-    console.error('Function error:', error);
+    console.error('Handler catch error:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: error.message || 'Failed to analyze image' })
