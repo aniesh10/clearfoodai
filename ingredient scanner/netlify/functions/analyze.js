@@ -46,7 +46,7 @@ exports.handler = async (event) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'llama-3.2-90b-vision-preview',
+        model: 'qwen/qwen3.6-27b',
         messages: [
           {
             role: 'user',
