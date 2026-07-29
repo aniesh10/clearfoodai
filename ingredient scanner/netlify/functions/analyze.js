@@ -1,23 +1,22 @@
 exports.handler = async (event) => {
-  // Only allow POST requests
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: 'Method Not Allowed' };
   }
 
   try {
     const { image, preferences } = JSON.parse(event.body);
-    const GROQ_API_KEY = process.env.GROQ_API_KEY; // Securely pulled from Netlify environment variables
+    const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
     if (!GROQ_API_KEY) {
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: 'Server configuration error: Missing API Key' })
+        body: JSON.stringify({ error: 'Missing GROQ_API_KEY environment variable in Netlify' })
       };
     }
 
     const systemPrompt = `
       You are an expert food safety & OCR assistant. Analyze the ingredient label image.
-      User Active Preferences/Allergies: ${preferences.join(', ')}.
+      User Active Preferences/Allergies: ${preferences && preferences.length ? preferences.join(', ') : 'None'}.
 
       Categorize extracted ingredients strictly into these 5 groups:
       1. severe_allergens: Matches user preferences/allergies or top FDA allergens.
@@ -26,7 +25,7 @@ exports.handler = async (event) => {
       4. safe_whole_foods: Natural ingredients, spices, vitamins, whole foods.
       5. unverified: Ingredients that cannot be clearly classified or read.
 
-      Return ONLY a valid JSON object matching this exact structure with no extra text or markdown code blocks:
+      Return ONLY a valid JSON object matching this exact structure with no markdown formatting or extra text:
       {
         "health_score": 6.5,
         "score_label": "Moderate Health Risk",
@@ -63,6 +62,16 @@ exports.handler = async (event) => {
     });
 
     const data = await response.json();
+
+    // Check if Groq returned an API error
+    if (!response.ok || data.error || !data.choices) {
+      console.error('Groq Error Detail:', JSON.stringify(data));
+      return {
+        statusCode: response.status || 500,
+        body: JSON.stringify({ error: data.error?.message || 'Groq API request failed' })
+      };
+    }
+
     const resultJson = JSON.parse(data.choices[0].message.content);
 
     return {
@@ -72,10 +81,10 @@ exports.handler = async (event) => {
     };
 
   } catch (error) {
-    console.error('Error analyzing label:', error);
+    console.error('Handler catch error:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to analyze image' })
+      body: JSON.stringify({ error: error.message || 'Failed to analyze image' })
     };
   }
 };
