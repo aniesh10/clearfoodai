@@ -14,30 +14,7 @@ exports.handler = async (event) => {
       };
     }
 
-    const systemPrompt = `
-      You are an expert food safety & OCR assistant. Analyze the ingredient label image.
-      User Active Preferences/Allergies: ${preferences && preferences.length ? preferences.join(', ') : 'None'}.
-
-      Categorize extracted ingredients strictly into these 5 groups:
-      1. severe_allergens: Matches user preferences/allergies or top FDA allergens.
-      2. high_risk: Harmful additives (e.g., Nitrites, Hydrogenated oils, Red 40).
-      3. moderate_risk: Controversial preservatives/sweeteners (e.g., Sucralose, BHT).
-      4. safe_whole_foods: Natural ingredients, spices, vitamins, whole foods.
-      5. unverified: Ingredients that cannot be clearly classified or read.
-
-      Return ONLY a valid JSON object matching this exact structure with no markdown formatting or extra text:
-      {
-        "health_score": 6.5,
-        "score_label": "Moderate Health Risk",
-        "score_summary": "Short 1-sentence summary explanation",
-        "raw_ocr": "Exact raw text read from label",
-        "severe_allergens": [{"name": "Item Name", "reason": "Reason/Flag"}],
-        "high_risk": [{"name": "Item Name", "reason": "Reason/Flag"}],
-        "moderate_risk": [{"name": "Item Name", "reason": "Reason/Flag"}],
-        "safe_whole_foods": ["Item 1", "Item 2"],
-        "unverified": ["Item 1"]
-      }
-    `;
+    const systemPrompt = `You are a food safety assistant. Analyze this ingredient label image based on user preferences: ${preferences && preferences.length ? preferences.join(', ') : 'None'}. Return a JSON object with keys: health_score (number 1-10), score_label (string), score_summary (string), raw_ocr (string), severe_allergens (array of objects with name and reason), high_risk (array of objects with name and reason), moderate_risk (array of objects with name and reason), safe_whole_foods (array of strings), unverified (array of strings).`;
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -56,14 +33,13 @@ exports.handler = async (event) => {
             ]
           }
         ],
-        temperature: 0.2,
+        temperature: 0.1,
         response_format: { type: "json_object" }
       })
     });
 
     const data = await response.json();
 
-    // Check if Groq returned an API error
     if (!response.ok || data.error || !data.choices) {
       console.error('Groq Error Detail:', JSON.stringify(data));
       return {
