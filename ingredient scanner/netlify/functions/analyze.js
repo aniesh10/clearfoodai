@@ -47,31 +47,44 @@ Return ONLY a JSON object matching this schema:
   "unverified": [ string ]
 }`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              { text: systemPrompt },
-              {
-                inline_data: {
-                  mime_type: mimeType,
-                  data: base64Data
-                }
-              }
-            ]
-          }
-        ],
-        generationConfig: {
-          temperature: 0.1,
-          responseMimeType: "application/json"
-        }
-      })
-    });
+    // List of model endpoints to try in order (Fallback support)
+    const modelsToTry = [
+      'gemini-2.5-flash',
+      'gemini-2.0-flash',
+      'gemini-1.5-flash'
+    ];
 
-    const data = await response.json();
+    let data = null;
+    let response = null;
+
+    for (const model of modelsToTry) {
+      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                { text: systemPrompt },
+                {
+                  inline_data: {
+                    mime_type: mimeType,
+                    data: base64Data
+                  }
+                }
+              ]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.1,
+            responseMimeType: "application/json"
+          }
+        })
+      });
+
+      data = await response.json();
+      if (response.ok && !data.error) break; // Successfully fetched with current model
+    }
 
     if (!response.ok || data.error) {
       console.error('Gemini Error:', JSON.stringify(data));
