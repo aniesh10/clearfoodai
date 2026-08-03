@@ -47,11 +47,11 @@ Return ONLY a JSON object matching this schema:
   "unverified": [ string ]
 }`;
 
-    // List of model endpoints to try in order (Fallback support)
+    // List of active models to try sequentially
     const modelsToTry = [
       'gemini-2.5-flash',
       'gemini-2.0-flash',
-      'gemini-1.5-flash'
+      'gemini-2.5-flash-preview'
     ];
 
     let data = null;
@@ -83,7 +83,7 @@ Return ONLY a JSON object matching this schema:
       });
 
       data = await response.json();
-      if (response.ok && !data.error) break; // Successfully fetched with current model
+      if (response.ok && !data.error) break; // Succeeded!
     }
 
     if (!response.ok || data.error) {
