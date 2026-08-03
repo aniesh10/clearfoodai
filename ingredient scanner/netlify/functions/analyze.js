@@ -5,19 +5,14 @@ exports.handler = async (event) => {
 
   try {
     const { image, preferences } = JSON.parse(event.body);
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    const GROQ_API_KEY = process.env.GROQ_API_KEY;
 
-    if (!GEMINI_API_KEY) {
+    if (!GROQ_API_KEY) {
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: 'Missing GEMINI_API_KEY in Netlify environment variables' })
+        body: JSON.stringify({ error: 'Missing GROQ_API_KEY in Netlify environment variables' })
       };
     }
-
-    // Extract raw base64 data and mime type
-    const mimeMatch = image.match(/^data:(image\/\w+);base64,/);
-    const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-    const base64Data = image.replace(/^data:image\/\w+;base64,/, '');
 
     const systemPrompt = `You are an expert food safety and nutrition analyst. Analyze this food label image based on user preferences: ${preferences && preferences.length ? preferences.join(', ') : 'None'}.
 
@@ -47,54 +42,39 @@ Return ONLY a JSON object matching this schema:
   "unverified": [ string ]
 }`;
 
-    // List of active models to try sequentially
-    const modelsToTry = [
-      'gemini-2.5-flash',
-      'gemini-2.0-flash',
-      'gemini-2.5-flash-preview'
-    ];
-
-    let data = null;
-    let response = null;
-
-    for (const model of modelsToTry) {
-      response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                { text: systemPrompt },
-                {
-                  inline_data: {
-                    mime_type: mimeType,
-                    data: base64Data
-                  }
-                }
-              ]
-            }
-          ],
-          generationConfig: {
-            temperature: 0.1,
-            responseMimeType: "application/json"
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'qwen/qwen3.6-27b',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: systemPrompt },
+              { type: 'image_url', image_url: { url: image } }
+            ]
           }
-        })
-      });
+        ],
+        temperature: 0.1,
+        response_format: { type: "json_object" }
+      })
+    });
 
-      data = await response.json();
-      if (response.ok && !data.error) break; // Succeeded!
-    }
+    const data = await response.json();
 
     if (!response.ok || data.error) {
-      console.error('Gemini Error:', JSON.stringify(data));
+      console.error('Groq Error:', JSON.stringify(data));
       return {
         statusCode: response.status || 500,
-        body: JSON.stringify({ error: data.error?.message || 'Gemini API request failed' })
+        body: JSON.stringify({ error: data.error?.message || 'Groq API request failed' })
       };
     }
 
-    const jsonText = data.candidates[0].content.parts[0].text;
+    const jsonText = data.choices[0].message.content;
     const resultJson = JSON.parse(jsonText);
 
     return {
