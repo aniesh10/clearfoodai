@@ -72,12 +72,8 @@
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        .chevron-icon {
-            transition: transform 0.2s ease;
-        }
-        .expanded .chevron-icon {
-            transform: rotate(180deg);
-        }
+        .chevron-icon { transition: transform 0.2s ease; }
+        .expanded .chevron-icon { transform: rotate(180deg); }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 sm:p-6">
@@ -116,8 +112,9 @@
                 <span class="text-slate-400 text-lg font-bold">/ 10</span>
             </div>
 
-            <div id="score-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs font-semibold">
-                <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> <span id="score-label">Analyzing...</span>
+            <div id="score-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-500/15 border border-slate-500/30 text-slate-300 text-xs font-semibold">
+                <i id="score-icon" data-lucide="shield-check" class="w-3.5 h-3.5"></i> 
+                <span id="score-label">Analyzing...</span>
             </div>
 
             <p id="score-summary" class="text-xs text-slate-300 leading-relaxed mt-1 max-w-xs">
@@ -129,7 +126,7 @@
             <div class="flex items-center justify-between border-b border-white/5 pb-2 cursor-pointer select-none" onclick="toggleRawText('raw-cat-1', this)">
                 <div class="flex items-center gap-2">
                     <i data-lucide="octagon-alert" class="w-4 h-4 text-purple-400"></i>
-                    <h3 class="text-xs font-bold text-white uppercase tracking-wider">Severe Allergens</h3>
+                    <h3 class="text-xs font-bold text-white uppercase tracking-wider">Allergens</h3>
                 </div>
                 <div class="flex items-center gap-1 text-[10px] text-slate-400">
                     <span>Raw Text</span>
@@ -137,7 +134,7 @@
                 </div>
             </div>
 
-            <ul id="severe-allergens-list" class="flex flex-col gap-2"></ul>
+            <ul id="allergens-list" class="flex flex-col gap-2"></ul>
 
             <div id="raw-cat-1" class="hidden mt-1 p-2.5 rounded-xl bg-black/40 border border-white/10 text-[11px] text-slate-300 font-mono leading-relaxed">
                 <div class="flex items-center gap-1 text-[10px] text-slate-400 mb-1 font-sans">
@@ -151,7 +148,7 @@
             <div class="flex items-center justify-between border-b border-white/5 pb-2 cursor-pointer select-none" onclick="toggleRawText('raw-cat-2', this)">
                 <div class="flex items-center gap-2">
                     <i data-lucide="shield-alert" class="w-4 h-4 text-red-400"></i>
-                    <h3 class="text-xs font-bold text-white uppercase tracking-wider">High Risk Additives</h3>
+                    <h3 class="text-xs font-bold text-white uppercase tracking-wider">Unhealthy</h3>
                 </div>
                 <div class="flex items-center gap-1 text-[10px] text-slate-400">
                     <span>Raw Text</span>
@@ -159,7 +156,7 @@
                 </div>
             </div>
 
-            <ul id="high-risk-list" class="flex flex-col gap-2"></ul>
+            <ul id="unhealthy-list" class="flex flex-col gap-2"></ul>
 
             <div id="raw-cat-2" class="hidden mt-1 p-2.5 rounded-xl bg-black/40 border border-white/10 text-[11px] text-slate-300 font-mono leading-relaxed">
                 <div class="flex items-center gap-1 text-[10px] text-slate-400 mb-1 font-sans">
@@ -173,7 +170,7 @@
             <div class="flex items-center justify-between border-b border-white/5 pb-2 cursor-pointer select-none" onclick="toggleRawText('raw-cat-3', this)">
                 <div class="flex items-center gap-2">
                     <i data-lucide="triangle-alert" class="w-4 h-4 text-amber-400"></i>
-                    <h3 class="text-xs font-bold text-white uppercase tracking-wider">Moderate Risk</h3>
+                    <h3 class="text-xs font-bold text-white uppercase tracking-wider">Moderate</h3>
                 </div>
                 <div class="flex items-center gap-1 text-[10px] text-slate-400">
                     <span>Raw Text</span>
@@ -181,7 +178,7 @@
                 </div>
             </div>
 
-            <ul id="moderate-risk-list" class="flex flex-col gap-2"></ul>
+            <ul id="moderate-list" class="flex flex-col gap-2"></ul>
 
             <div id="raw-cat-3" class="hidden mt-1 p-2.5 rounded-xl bg-black/40 border border-white/10 text-[11px] text-slate-300 font-mono leading-relaxed">
                 <div class="flex items-center gap-1 text-[10px] text-slate-400 mb-1 font-sans">
@@ -195,7 +192,7 @@
             <div class="flex items-center justify-between border-b border-white/5 pb-2 cursor-pointer select-none" onclick="toggleRawText('raw-cat-4', this)">
                 <div class="flex items-center gap-2">
                     <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
-                    <h3 class="text-xs font-bold text-white uppercase tracking-wider">Safe & Whole Foods</h3>
+                    <h3 class="text-xs font-bold text-white uppercase tracking-wider">Whole / Green</h3>
                 </div>
                 <div class="flex items-center gap-1 text-[10px] text-slate-400">
                     <span>Raw Text</span>
@@ -203,7 +200,7 @@
                 </div>
             </div>
 
-            <div id="safe-foods-list" class="flex flex-wrap gap-1.5"></div>
+            <div id="whole-green-list" class="flex flex-wrap gap-1.5"></div>
 
             <div id="raw-cat-4" class="hidden mt-1 p-2.5 rounded-xl bg-black/40 border border-white/10 text-[11px] text-slate-300 font-mono leading-relaxed">
                 <div class="flex items-center gap-1 text-[10px] text-slate-400 mb-1 font-sans">
@@ -258,25 +255,52 @@
 
             const data = JSON.parse(rawData);
 
+            // Display Scanned Thumbnail
             const savedImage = localStorage.getItem('scannedImage');
             const imgEl = document.getElementById('scanned-image-preview');
             if (imgEl && savedImage) imgEl.src = savedImage;
 
+            // Score & Summary Elements
             const scoreEl = document.getElementById('health-score');
+            const badgeEl = document.getElementById('score-badge');
+            const iconEl = document.getElementById('score-icon');
             const labelEl = document.getElementById('score-label');
             const summaryEl = document.getElementById('score-summary');
 
             if (scoreEl && data.health_score !== undefined) scoreEl.textContent = data.health_score;
-            if (labelEl && data.score_label) labelEl.textContent = data.score_label;
             if (summaryEl && data.score_summary) summaryEl.textContent = data.score_summary;
 
+            // Color & Icon Configuration Mapping
+            const scoreConfig = {
+                emerald: { bg: 'bg-emerald-500/15', border: 'border-emerald-500/30', text: 'text-emerald-300', icon: 'check-circle-2' },
+                green:   { bg: 'bg-green-500/15',   border: 'border-green-500/30',   text: 'text-green-300',   icon: 'smile' },
+                amber:   { bg: 'bg-amber-500/15',   border: 'border-amber-500/30',   text: 'text-amber-300',   icon: 'alert-triangle' },
+                orange:  { bg: 'bg-orange-500/15',  border: 'border-orange-500/30',  text: 'text-orange-300',  icon: 'alert-circle' },
+                red:     { bg: 'bg-red-500/15',     border: 'border-red-500/30',     text: 'text-red-300',     icon: 'octagon-alert' }
+            };
+
+            const config = scoreConfig[data.score_color] || scoreConfig.amber;
+
+            if (badgeEl) {
+                badgeEl.className = `inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${config.bg} border ${config.border} ${config.text} text-xs font-semibold`;
+            }
+            if (iconEl) {
+                iconEl.setAttribute('data-lucide', config.icon);
+                lucide.createIcons(); // Refresh Lucide icon rendering
+            }
+            if (labelEl && data.score_label) {
+                labelEl.textContent = data.score_label;
+            }
+
+            // Raw OCR Extract
             if (data.raw_ocr) {
                 document.querySelectorAll('.raw-ocr-text').forEach(el => {
                     el.textContent = `"${data.raw_ocr}"`;
                 });
             }
 
-            function renderCardList(elementId, items, colorClass, badgeText) {
+            // Clean Render Cards (No Right Badges)
+            function renderCardList(elementId, items, colorClass) {
                 const container = document.getElementById(elementId);
                 if (!container) return;
                 container.innerHTML = '';
@@ -291,12 +315,11 @@
                     li.className = `flex flex-col text-xs p-2.5 rounded-xl ${colorClass} gap-1`;
                     
                     const name = typeof item === 'object' ? item.name : item;
-                    const reason = typeof item === 'object' ? item.reason : badgeText;
+                    const reason = typeof item === 'object' ? item.reason : '';
 
                     li.innerHTML = `
                         <div class="flex items-center justify-between">
                             <span class="font-bold text-white">${name}</span>
-                            <span class="text-[10px] opacity-80 px-2 py-0.5 rounded bg-black/20">${badgeText}</span>
                         </div>
                         ${reason ? `<p class="text-[11px] text-slate-300 leading-snug">${reason}</p>` : ''}
                     `;
@@ -304,6 +327,7 @@
                 });
             }
 
+            // Clean Render Pills
             function renderPillList(elementId, items, colorClass) {
                 const container = document.getElementById(elementId);
                 if (!container) return;
@@ -322,11 +346,12 @@
                 });
             }
 
-            renderCardList('severe-allergens-list', data.severe_allergens, 'bg-purple-500/15 border border-purple-500/30', 'Severe Allergen');
-            renderCardList('high-risk-list', data.high_risk, 'bg-red-500/15 border border-red-500/30', 'High Risk Additive');
-            renderCardList('moderate-risk-list', data.moderate_risk, 'bg-amber-500/15 border border-amber-500/30', 'Moderate Risk');
+            // Render Lists Matching Gemini's 5 Categories
+            renderCardList('allergens-list', data.allergens, 'bg-purple-500/15 border border-purple-500/30');
+            renderCardList('unhealthy-list', data.unhealthy, 'bg-red-500/15 border border-red-500/30');
+            renderCardList('moderate-list', data.moderate, 'bg-amber-500/15 border border-amber-500/30');
             
-            renderPillList('safe-foods-list', data.safe_whole_foods, 'bg-emerald-500/15 border border-emerald-500/30');
+            renderPillList('whole-green-list', data.whole_green, 'bg-emerald-500/15 border border-emerald-500/30');
             renderPillList('unverified-list', data.unverified, 'bg-slate-500/15 border border-slate-500/30');
         });
     </script>
