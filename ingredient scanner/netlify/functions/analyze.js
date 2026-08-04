@@ -14,7 +14,7 @@ exports.handler = async (event) => {
       };
     }
 
-    const systemPrompt = `You are a food safety assistant. Analyze this ingredient label image based on user preferences: ${preferences && preferences.length ? preferences.join(', ') : 'None'}. Return a JSON object with keys: health_score (number 1-10), score_label (string), score_summary (string), raw_ocr (string), allergens (array of objects with name and reason), unhealthy (array of objects with name and reason), moderate (array of objects with name and reason), whole/green (array of strings), unverified (array of strings).`;
+    const systemPrompt = `You are a food safety assistant. Analyze this ingredient label image based on user preferences: ${preferences && preferences.length ? preferences.join(', ') : 'None'}. Return a JSON object with keys: health_score (number 1-10), score_label (string), score_summary (string), raw_ocr (string), allergens (array of objects with name and reason), unhealthy (array of objects with name and reason), moderate (array of objects with name and reason), whole_green (array of strings), unverified (array of strings).`;
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
