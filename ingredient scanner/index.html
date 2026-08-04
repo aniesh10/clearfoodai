@@ -323,8 +323,8 @@
                 localStorage.setItem('scannedImage', base64Image);
 
                 try {
-                    // Endpoint updated to Vercel standard: /api/analyze
-                    const response = await fetch('/api/analyze', {
+                    // Netlify serverless function route
+                    const response = await fetch('/.netlify/functions/analyze', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
