@@ -27,7 +27,6 @@
         }
 
         body {
-            /* Full-screen responsive background */
             background-image: url('assets/bg.webp');
             background-size: cover;
             background-position: center;
@@ -37,7 +36,6 @@
             overflow-x: hidden;
         }
 
-        /* MASTER CONTAINER CARD (Main Frosted Glass Wrapper) */
         .master-glass-card {
             background: rgba(15, 23, 42, 0.45);
             backdrop-filter: blur(24px);
@@ -46,7 +44,6 @@
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
-        /* INNER CARDS (Dark Tint Frosted Glass) */
         .inner-dark-glass {
             background: rgba(10, 15, 26, 0.65);
             backdrop-filter: blur(12px);
@@ -55,7 +52,6 @@
             box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
         }
 
-        /* Pill Tags */
         .pill-tag {
             padding: 0.6rem 1.25rem;
             border-radius: 9999px;
@@ -86,7 +82,6 @@
             box-shadow: 0 4px 14px rgba(114, 198, 247, 0.3);
         }
 
-        /* Action Buttons */
         .btn-primary {
             background-color: var(--sky-blue);
             color: #000000;
@@ -112,7 +107,6 @@
             transform: translateY(-1px);
         }
 
-        /* Custom AI Scanning Loader */
         .loader-container {
             display: flex;
             flex-direction: column;
@@ -182,14 +176,8 @@
             75% { clip-path: inset(0 0 0 0); }
         }
 
-        /* Scrollbar styling */
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .hide-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 sm:p-6">
@@ -215,9 +203,6 @@
             </div>
             
             <div class="flex gap-2 overflow-x-auto hide-scrollbar py-1">
-                <button class="pill-tag" data-pref="diabetic" onclick="togglePref(this)">
-                    <span>🩸</span> Diabetic-Friendly
-                </button>
                 <button class="pill-tag" data-pref="gluten-free" onclick="togglePref(this)">
                     <span>🌾</span> Gluten-Free
                 </button>
@@ -299,7 +284,6 @@
             const file = event.target.files[0];
             if (!file) return;
 
-            // 1. Hide the scanner input card and reveal the processing loader
             const scannerBox = document.getElementById('scannerBox');
             const loaderState = document.getElementById('loaderState');
             
@@ -309,21 +293,17 @@
                 loaderState.classList.add('flex');
             }
 
-            // Collect active preference tags
             const activePrefs = Array.from(document.querySelectorAll('.pill-tag.active'))
                 .map(btn => btn.dataset.pref);
 
-            // Convert selected image to Base64
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = async function () {
                 const base64Image = reader.result;
 
-                // Save preview locally for output page
                 localStorage.setItem('scannedImage', base64Image);
 
                 try {
-                    // Netlify serverless function route
                     const response = await fetch('/.netlify/functions/analyze', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -336,17 +316,16 @@
                     const resultData = await response.json();
 
                     if (response.ok && !resultData.error) {
-                        // Save result in browser storage under 'scanResult' and navigate to output screen
                         localStorage.setItem('scanResult', JSON.stringify(resultData));
                         window.location.href = 'output.html';
                     } else {
                         alert('Scan failed: ' + (resultData.error || 'Unknown error'));
-                        location.reload(); // Reset screen on failure
+                        location.reload();
                     }
                 } catch (err) {
                     console.error(err);
                     alert('Network error while connecting to serverless function.');
-                    location.reload(); // Reset screen on error
+                    location.reload();
                 }
             };
         }
