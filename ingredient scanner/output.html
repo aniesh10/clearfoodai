@@ -112,8 +112,8 @@
                 <span class="text-slate-400 text-lg font-bold">/ 10</span>
             </div>
 
-            <div id="score-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-500/15 border border-slate-500/30 text-slate-300 text-xs font-semibold">
-                <i id="score-icon" data-lucide="shield-check" class="w-3.5 h-3.5"></i> 
+            <div id="score-badge" class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-semibold transition-all">
+                <i id="score-icon" data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> 
                 <span id="score-label">Analyzing...</span>
             </div>
 
@@ -267,26 +267,37 @@
             const labelEl = document.getElementById('score-label');
             const summaryEl = document.getElementById('score-summary');
 
-            if (scoreEl && data.health_score !== undefined) scoreEl.textContent = data.health_score;
+            const score = data.health_score !== undefined ? data.health_score : 0;
+            if (scoreEl) scoreEl.textContent = score;
             if (summaryEl && data.score_summary) summaryEl.textContent = data.score_summary;
 
-            // Color & Icon Configuration Mapping
+            // Rating Badge Styling Config
             const scoreConfig = {
-                emerald: { bg: 'bg-emerald-500/15', border: 'border-emerald-500/30', text: 'text-emerald-300', icon: 'check-circle-2' },
-                green:   { bg: 'bg-green-500/15',   border: 'border-green-500/30',   text: 'text-green-300',   icon: 'smile' },
-                amber:   { bg: 'bg-amber-500/15',   border: 'border-amber-500/30',   text: 'text-amber-300',   icon: 'alert-triangle' },
-                orange:  { bg: 'bg-orange-500/15',  border: 'border-orange-500/30',  text: 'text-orange-300',  icon: 'alert-circle' },
-                red:     { bg: 'bg-red-500/15',     border: 'border-red-500/30',     text: 'text-red-300',     icon: 'octagon-alert' }
+                emerald: { bg: 'bg-emerald-500/20', border: 'border-emerald-500/40', text: 'text-emerald-300', icon: 'check-circle-2' },
+                green:   { bg: 'bg-green-500/20',   border: 'border-green-500/40',   text: 'text-green-300',   icon: 'smile' },
+                amber:   { bg: 'bg-amber-500/20',   border: 'border-amber-500/40',   text: 'text-amber-300',   icon: 'alert-triangle' },
+                orange:  { bg: 'bg-orange-500/20',  border: 'border-orange-500/40',  text: 'text-orange-300',  icon: 'alert-circle' },
+                red:     { bg: 'bg-red-500/20',     border: 'border-red-500/40',     text: 'text-red-300',     icon: 'octagon-alert' }
             };
 
-            const config = scoreConfig[data.score_color] || scoreConfig.amber;
+            // Dynamically select color profile based on numerical score & API response
+            let colorKey = data.score_color;
+            if (!colorKey) {
+                if (score >= 9) colorKey = 'emerald';
+                else if (score >= 7) colorKey = 'green';
+                else if (score >= 5) colorKey = 'amber';
+                else if (score >= 3) colorKey = 'orange';
+                else colorKey = 'red';
+            }
+
+            const config = scoreConfig[colorKey] || scoreConfig.emerald;
 
             if (badgeEl) {
-                badgeEl.className = `inline-flex items-center gap-1.5 px-3 py-1 rounded-full ${config.bg} border ${config.border} ${config.text} text-xs font-semibold`;
+                badgeEl.className = `inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full ${config.bg} border ${config.border} ${config.text} text-xs font-semibold`;
             }
             if (iconEl) {
                 iconEl.setAttribute('data-lucide', config.icon);
-                lucide.createIcons(); // Refresh Lucide icon rendering
+                lucide.createIcons();
             }
             if (labelEl && data.score_label) {
                 labelEl.textContent = data.score_label;
@@ -299,7 +310,7 @@
                 });
             }
 
-            // Clean Render Cards (No Right Badges)
+            // Render List Items
             function renderCardList(elementId, items, colorClass) {
                 const container = document.getElementById(elementId);
                 if (!container) return;
@@ -327,7 +338,6 @@
                 });
             }
 
-            // Clean Render Pills
             function renderPillList(elementId, items, colorClass) {
                 const container = document.getElementById(elementId);
                 if (!container) return;
@@ -346,7 +356,6 @@
                 });
             }
 
-            // Render Lists Matching Gemini's 5 Categories
             renderCardList('allergens-list', data.allergens, 'bg-purple-500/15 border border-purple-500/30');
             renderCardList('unhealthy-list', data.unhealthy, 'bg-red-500/15 border border-red-500/30');
             renderCardList('moderate-list', data.moderate, 'bg-amber-500/15 border border-amber-500/30');
