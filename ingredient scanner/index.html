@@ -26,15 +26,32 @@
             font-weight: 700;
         }
 
+        html {
+            /* Fallback colour while the image loads / behind overscroll */
+            background-color: #0a0f1a;
+        }
+
         body {
-            /* Full-screen responsive background */
-            background-image: url('assets/bg.webp');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
             color: var(--foreground);
             overflow-x: hidden;
+        }
+
+        /* Full-screen responsive background.
+           A fixed layer is used instead of background-attachment: fixed,
+           which mobile browsers (iOS Safari especially) render incorrectly. */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            /* Largest viewport height, so the image still fills the screen
+               when the mobile address bar collapses */
+            height: 100lvh;
+            z-index: -1;
+            background: url('assets/bg.webp') center / cover no-repeat;
+            pointer-events: none;
         }
 
         /* MASTER CONTAINER CARD (Main Frosted Glass Wrapper) */
@@ -281,7 +298,7 @@
                 💡
             </div>
             <p class="text-xs text-slate-300 leading-snug font-normal">
-                <strong class="text-white font-semibold">Pro Tip:</strong> Ensure the label is flat, well-lit, and legible for 100% scanning accuracy.
+                <strong class="text-white font-semibold">Pro Tip:</strong> Ensure the label is flat, well-lit, and legible.
             </p>
         </footer>
 
