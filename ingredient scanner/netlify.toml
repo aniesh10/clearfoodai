@@ -1,22 +1,10 @@
 [build]
-  publish = "."
+  # Only the public folder is served, so source code and config never go online.
+  publish = "public"
   functions = "netlify/functions"
 
 [functions]
   node_bundler = "esbuild"
-
-# The site is published from the repo root, so keep source and config out of it.
-[[redirects]]
-  from = "/netlify/*"
-  to = "/404"
-  status = 404
-  force = true
-
-[[redirects]]
-  from = "/netlify.toml"
-  to = "/404"
-  status = 404
-  force = true
 
 [[headers]]
   for = "/*"

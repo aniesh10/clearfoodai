@@ -1,7 +1,7 @@
 // Netlify Functions v2. Served at /api/analyze.
 const MODEL = process.env.GROQ_MODEL || 'qwen/qwen3.8-27b';
 const MAX_IMAGE_CHARS = 5 * 1024 * 1024; // ~3.7MB image as base64 (Netlify caps requests at 6MB)
-// Keep in sync with the data-pref values in index.html.
+// Keep in sync with the data-pref values in public/index.html.
 const ALLOWED_PREFS = new Set(['gluten-free', 'vegetarian', 'vegan', 'peanut-allergy', 'lactose-free', 'soy-free']);
 
 // Primary rate limit: enforced by Netlify at the edge, before the function runs.
@@ -11,7 +11,8 @@ export const config = {
     action: 'rate_limit',
     windowLimit: 10,
     windowSize: 60,
-    aggregateBy: ['ip', 'domain']
+    // 'domain' is an Enterprise-only option, so limit per IP only.
+    aggregateBy: ['ip']
   }
 };
 
@@ -73,6 +74,20 @@ function normalise(r) {
 
 export default async (req, context) => {
   if (req.method !== 'POST') return json(405, { error: 'Method Not Allowed' }, { Allow: 'POST' });
+
+  // Block other websites from making their visitors' browsers call this endpoint.
+  // Requiring JSON forces browsers to ask permission first (which we never grant),
+  // and the Origin / Sec-Fetch-Site checks reject cross-site requests outright.
+  const contentType = (req.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+  if (contentType !== 'application/json') return json(415, { error: 'Unsupported content type' });
+  const origin = req.headers.get('origin');
+  if (origin) {
+    let sameHost = false;
+    try { sameHost = new URL(origin).host === new URL(req.url).host; } catch {}
+    if (!sameHost) return json(403, { error: 'Forbidden' });
+  }
+  const fetchSite = req.headers.get('sec-fetch-site');
+  if (fetchSite && fetchSite !== 'same-origin' && fetchSite !== 'none') return json(403, { error: 'Forbidden' });
 
   try {
     const GROQ_API_KEY = process.env.GROQ_API_KEY;
@@ -167,7 +182,9 @@ Return ONLY a valid JSON object matching this exact structure:
     const data = await response.json().catch(() => ({}));
     const content = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
     if (!response.ok || typeof content !== 'string') {
-      console.error('Groq API error:', response.status, JSON.stringify(data).slice(0, 2000));
+      // Log only the status and error type, never response text (it can contain users' label text).
+      const errType = data && data.error && typeof data.error.type === 'string' ? data.error.type : 'unknown';
+      console.error('Groq API error:', response.status, errType);
       if (response.status === 429) {
         return json(503, { error: 'The AI service is busy. Please try again in a minute.' });
       }
@@ -180,7 +197,7 @@ Return ONLY a valid JSON object matching this exact structure:
       const cleaned = content.replace(/<think>[\s\S]*?<\/think>/g, '');
       result = JSON.parse(cleaned.slice(cleaned.indexOf('{'), cleaned.lastIndexOf('}') + 1));
     } catch {
-      console.error('Unparseable model output:', content.slice(0, 500));
+      console.error('Unparseable model output, length:', content.length);
       return json(502, { error: 'The AI returned an unreadable response. Please try again.' });
     }
     if (!result || typeof result !== 'object') {
@@ -189,7 +206,7 @@ Return ONLY a valid JSON object matching this exact structure:
 
     return json(200, normalise(result));
   } catch (error) {
-    console.error('Error analyzing label:', error);
+    console.error('Error analyzing label:', error && error.name, error && error.message);
     return json(500, { error: 'Failed to analyze image. Please try again.' });
   }
 };
