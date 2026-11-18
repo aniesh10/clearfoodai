@@ -221,6 +221,16 @@
             unverified: { chip: 'bg-slate-500/15 border-slate-500/30' }
         };
 
+        // Labels often print ingredients in capitals, so show names as "Skim milk powder".
+        // Common additive abbreviations and E-numbers stay in capitals.
+        const ACRONYMS = new Set(['BHA', 'BHT', 'TBHQ', 'MSG', 'DATEM', 'PGPR', 'CMC', 'HFCS', 'EDTA']);
+        function sentenceCase(name) {
+            const lower = name.trim().toLowerCase();
+            return (lower.charAt(0).toUpperCase() + lower.slice(1))
+                .replace(/\b[a-z]+\b/gi, w => (ACRONYMS.has(w.toUpperCase()) ? w.toUpperCase() : w))
+                .replace(/\be(\d{3,4}[a-z]?)\b/gi, (m, code) => 'E' + code);
+        }
+
         function fillList(key, items) {
             const list = document.getElementById('list-' + key);
             const tone = TONES[key];
@@ -235,10 +245,10 @@
             }
             for (const item of clean) {
                 if (tone.chip) {
-                    list.appendChild(el('li', 'text-xs px-2.5 py-1 rounded-lg border text-white font-medium ' + tone.chip, item.name));
+                    list.appendChild(el('li', 'text-xs px-2.5 py-1 rounded-lg border text-white font-medium ' + tone.chip, sentenceCase(item.name)));
                 } else {
                     const li = el('li', 'flex items-center justify-between gap-3 text-xs p-2.5 rounded-xl border ' + tone.row);
-                    li.appendChild(el('span', 'font-semibold text-white', item.name));
+                    li.appendChild(el('span', 'font-semibold text-white', sentenceCase(item.name)));
                     if (typeof item.reason === 'string' && item.reason.trim()) {
                         li.appendChild(el('span', 'text-[10px] text-right ' + tone.reason, item.reason));
                     }
